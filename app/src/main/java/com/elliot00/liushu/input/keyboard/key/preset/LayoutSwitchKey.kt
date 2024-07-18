@@ -38,7 +38,7 @@ fun RowScope.LayoutSwitchKey(
         onClick = onClick,
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.tertiaryContainer,
+                color = MaterialTheme.colorScheme.outlineVariant,
                 shape = MaterialTheme.shapes.extraLarge
             )
             .clip(shape = MaterialTheme.shapes.extraLarge)
@@ -46,7 +46,6 @@ fun RowScope.LayoutSwitchKey(
     ) {
         Text(
             text = label,
-            color = MaterialTheme.colorScheme.onTertiaryContainer,
             fontSize = 18.sp,
             textAlign = TextAlign.Center
         )

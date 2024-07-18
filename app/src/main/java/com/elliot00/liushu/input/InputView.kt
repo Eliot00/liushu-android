@@ -63,7 +63,7 @@ private fun InputScreen(
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
-    Surface(tonalElevation = 5.dp, modifier = Modifier.height(screenHeight / 3)) {
+    Surface(modifier = Modifier.height(screenHeight / 3)) {
         InputTokensPopup(state.segmentedTokens.joinToString(separator = " "))
 
         Column(

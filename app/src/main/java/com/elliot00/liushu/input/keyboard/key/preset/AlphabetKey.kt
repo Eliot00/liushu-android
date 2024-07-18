@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.elliot00.liushu.input.keyboard.key.VariantKeyLabel
@@ -59,10 +60,10 @@ fun RowScope.AlphabetKey(
     Box(
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.surface,
-                shape = MaterialTheme.shapes.medium
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                shape = MaterialTheme.shapes.small
             )
-            .clip(shape = MaterialTheme.shapes.medium)
+            .clip(shape = MaterialTheme.shapes.small)
             .weight(1f)
             .fillMaxHeight()
             .pointerInput(Unit) {
@@ -114,11 +115,16 @@ fun RowScope.AlphabetKey(
             },
         contentAlignment = Alignment.Center
     ) {
-        Text(text = swipeUpText, fontSize = 8.sp, modifier = Modifier.align(Alignment.TopEnd))
+        Text(
+            text = swipeUpText,
+            fontSize = 12.sp,
+            fontFamily = FontFamily.Monospace,
+            modifier = Modifier.align(Alignment.TopEnd)
+        )
         Text(
             text = text,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 28.sp,
+            fontSize = 26.sp,
+            fontFamily = FontFamily.Monospace,
             textAlign = TextAlign.Center
         )
     }

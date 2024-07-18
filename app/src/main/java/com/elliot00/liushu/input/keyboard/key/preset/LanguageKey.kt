@@ -38,7 +38,8 @@ fun RowScope.LanguageKey(
         onLongClick = null,
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.surface, shape = MaterialTheme.shapes.medium
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                shape = MaterialTheme.shapes.medium
             )
             .clip(shape = MaterialTheme.shapes.medium)
             .weight(1f),
@@ -46,7 +47,6 @@ fun RowScope.LanguageKey(
         Icon(
             painter = painterResource(id = R.drawable.ic_baseline_language_24),
             contentDescription = "Enter key",
-            tint = MaterialTheme.colorScheme.onSurface
         )
     }
 }

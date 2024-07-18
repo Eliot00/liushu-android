@@ -46,7 +46,6 @@ fun RowScope.BackspaceKey(
         Icon(
             painter = painterResource(id = R.drawable.ic_outline_backspace_24),
             contentDescription = "Backspace key",
-            tint = MaterialTheme.colorScheme.onSecondaryContainer
         )
     }
 }

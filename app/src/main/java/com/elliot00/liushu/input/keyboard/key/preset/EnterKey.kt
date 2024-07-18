@@ -37,7 +37,7 @@ fun RowScope.EnterKey(
         onClick = onClick,
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.primaryContainer,
+                color = MaterialTheme.colorScheme.inversePrimary,
                 shape = MaterialTheme.shapes.extraLarge
             )
             .clip(shape = MaterialTheme.shapes.extraLarge)
@@ -46,7 +46,6 @@ fun RowScope.EnterKey(
         Icon(
             painter = painterResource(id = R.drawable.ic_baseline_keyboard_return_24),
             contentDescription = "Enter key",
-            tint = MaterialTheme.colorScheme.onPrimaryContainer
         )
     }
 }

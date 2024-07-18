@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.elliot00.liushu.input.keyboard.key.BaseKey
@@ -37,7 +38,7 @@ fun RowScope.SpaceKey(
         onClick = onClick,
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.surface,
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
                 shape = MaterialTheme.shapes.medium
             )
             .clip(shape = MaterialTheme.shapes.medium)
@@ -45,8 +46,8 @@ fun RowScope.SpaceKey(
     ) {
         Text(
             text = "⎵",
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 28.sp,
+            fontSize = 26.sp,
+            fontFamily = FontFamily.Monospace,
             textAlign = TextAlign.Center
         )
     }

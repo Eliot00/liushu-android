@@ -46,7 +46,6 @@ fun RowScope.ShiftKey(
         Icon(
             painter = painterResource(id = R.drawable.ic_capslock_none),
             contentDescription = "Shift key",
-            tint = MaterialTheme.colorScheme.onSecondaryContainer
         )
     }
 }
