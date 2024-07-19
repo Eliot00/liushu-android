@@ -215,6 +215,13 @@ class LiushuInputMethodService : LifecycleInputMethodService(), SavedStateRegist
     private fun handleEnter() {
         if (_state.value.input.isNotEmpty()) {
             commitText(_state.value.input)
+            _state.update {
+                it.copy(
+                    input = "",
+                    segmentedTokens = emptyList(),
+                    candidates = emptyList()
+                )
+            }
         } else {
             val inputType = currentInputEditorInfo.inputType
             if ((inputType and InputType.TYPE_TEXT_FLAG_MULTI_LINE) != 0) {
