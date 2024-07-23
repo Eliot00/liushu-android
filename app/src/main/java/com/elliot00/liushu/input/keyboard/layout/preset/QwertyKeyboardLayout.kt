@@ -218,7 +218,9 @@ fun QwertyKeyboardLayout(
             Box(modifier = Modifier.weight(0.5f))
         }
         KeyboardRow {
-            ShiftKey(onClick = { onAction(InputMethodAction.Shift) })
+            ShiftKey(
+                onClick = { onAction(InputMethodAction.Shift) },
+                onLongClick = { onAction(InputMethodAction.CapsLock) })
             AlphabetKey(
                 label = VariantKeyLabel(text = "z", textInCapsLock = "Z"),
                 isAsciiMode = isAsciiMode,
