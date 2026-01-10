@@ -31,8 +31,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -44,9 +42,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.elliot00.liushu.R
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -86,7 +86,7 @@ fun GeneralPicker(
                 .heightIn(40.dp)
         ) {
             IconButton(onClick = onGoBack) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "goBackToQwerty")
+                Icon(painter = painterResource(R.drawable.baseline_chevron_left_24), "goBackToQwerty")
             }
             Column {
                 LazyRow {

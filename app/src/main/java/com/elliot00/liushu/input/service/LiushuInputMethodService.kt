@@ -22,7 +22,6 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.lifecycle.setViewTreeLifecycleOwner
-import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
@@ -42,7 +41,7 @@ class LiushuInputMethodService : LifecycleInputMethodService(), SavedStateRegist
     lateinit var engine: Engine
 
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
-    override val savedStateRegistry: SavedStateRegistry get() = savedStateRegistryController.savedStateRegistry
+    override val savedStateRegistry = savedStateRegistryController.savedStateRegistry
 
     override val lifecycle = dispatcher.lifecycle
 

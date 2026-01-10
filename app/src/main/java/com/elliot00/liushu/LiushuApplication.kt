@@ -18,12 +18,10 @@
 package com.elliot00.liushu
 
 import android.app.Application
-import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 
-@HiltAndroidApp
 class LiushuApplication : Application() {
     override fun onCreate() {
         super.onCreate()

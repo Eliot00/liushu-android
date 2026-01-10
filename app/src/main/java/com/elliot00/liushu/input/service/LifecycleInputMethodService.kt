@@ -44,9 +44,11 @@ abstract class LifecycleInputMethodService : InputMethodService(), LifecycleOwne
     // it results in mDispatcher.onServicePreSuperOnStart() call, because
     // super.onStartCommand calls onStart().
     @CallSuper
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return super.onStartCommand(intent, flags, startId)
-    }
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int
+    ): Int = super.onStartCommand(intent, flags, startId)
 
     @CallSuper
     override fun onDestroy() {
