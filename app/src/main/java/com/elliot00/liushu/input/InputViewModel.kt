@@ -1,81 +1,23 @@
-/*
- *     Copyright (C) 2023  Elliot Xu
- *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Affero General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Affero General Public License for more details.
- *
- *     You should have received a copy of the GNU Affero General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-package com.elliot00.liushu.input.service
+package com.elliot00.liushu.input
 
 import android.text.InputType
 import android.view.KeyEvent
-import android.view.View
 import android.view.inputmethod.EditorInfo
-import androidx.lifecycle.setViewTreeLifecycleOwner
-import androidx.savedstate.SavedStateRegistryController
-import androidx.savedstate.SavedStateRegistryOwner
-import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.elliot00.liushu.input.InputView
+import androidx.lifecycle.ViewModel
 import com.elliot00.liushu.input.data.CapsLockState
 import com.elliot00.liushu.input.data.InputMethodAction
 import com.elliot00.liushu.input.data.InputViewState
 import com.elliot00.liushu.uniffi.Candidate
 import com.elliot00.liushu.uniffi.Engine
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import timber.log.Timber
-import java.io.File
 
-@AndroidEntryPoint
-class LiushuInputMethodService : LifecycleInputMethodService(), SavedStateRegistryOwner {
+class InputViewModel : ViewModel() {
     lateinit var engine: Engine
-
-    private val savedStateRegistryController = SavedStateRegistryController.create(this)
-    override val savedStateRegistry = savedStateRegistryController.savedStateRegistry
-
-    override val lifecycle = dispatcher.lifecycle
 
     private val _state = MutableStateFlow(InputViewState())
     val state = _state.asStateFlow()
-
-    override fun onCreate() {
-        super.onCreate()
-        Timber.d("InputMethodService onCreate")
-        savedStateRegistryController.performRestore(null)
-        val dictDir = "sunman"
-        val dictFile = "sunman.trie"
-        val path = sequenceOf(filesDir, dictDir, dictFile).joinToString(separator = File.separator)
-        engine = Engine(path)
-    }
-
-    override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
-        super.onStartInput(attribute, restarting)
-        Timber.d("Input starting")
-    }
-
-    override fun onCreateInputView(): View {
-        Timber.d("Creating input view")
-        val view = InputView(this)
-
-        window?.window?.decorView?.let { decorView ->
-            decorView.setViewTreeLifecycleOwner(this)
-            decorView.setViewTreeSavedStateRegistryOwner(this)
-        }
-
-        return view
-    }
 
     fun onAction(action: InputMethodAction) {
         when (action) {
@@ -193,16 +135,6 @@ class LiushuInputMethodService : LifecycleInputMethodService(), SavedStateRegist
                 segmentedTokens = newSegmentTokens
             )
         }
-    }
-
-    override fun onFinishInput() {
-        super.onFinishInput()
-        Timber.d("Input finishing")
-    }
-
-    override fun onDestroy() {
-        engine.close()
-        super.onDestroy()
     }
 
     private fun commitText(text: String) {
