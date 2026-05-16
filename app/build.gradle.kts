@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.service)
     implementation(libs.timber)
     implementation(libs.common)
+    implementation(libs.executorch.android)
     testImplementation(libs.junit)
     testImplementation(libs.mockk.android)
     testImplementation(libs.mockk.agent)

@@ -34,11 +34,19 @@ import com.elliot00.liushu.uniffi.Engine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import org.json.JSONArray
+import org.pytorch.executorch.EValue
+import org.pytorch.executorch.Module
+import org.pytorch.executorch.Tensor
 import timber.log.Timber
 import java.io.File
 
 class LiushuInputMethodService : LifecycleInputMethodService(), SavedStateRegistryOwner {
     lateinit var engine: Engine
+
+    private var torchModule: Module? = null
+    private val pnyn2idx = mutableMapOf<String, Int>()
+    private val idx2hanzi = mutableMapOf<Int, String>()
 
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
     override val savedStateRegistry = savedStateRegistryController.savedStateRegistry
@@ -56,6 +64,54 @@ class LiushuInputMethodService : LifecycleInputMethodService(), SavedStateRegist
         val dictFile = "sunman.trie"
         val path = sequenceOf(filesDir, dictDir, dictFile).joinToString(separator = File.separator)
         engine = Engine(path)
+        initTorchModule()
+        initVocab()
+    }
+
+    private fun initTorchModule() {
+        val modelFile = File(filesDir, "sunman/model.pte")
+        if (modelFile.exists()) {
+            torchModule = Module.load(modelFile.absolutePath)
+            Timber.d("PyTorch model loaded")
+        } else {
+            Timber.e("Model file not found")
+        }
+    }
+
+    private fun initVocab() {
+        val vocabFile = File(filesDir, "sunman/vocab.json")
+        if (vocabFile.exists()) {
+            try {
+                val jsonArray = JSONArray(vocabFile.readText())
+                if (jsonArray.length() >= 4) {
+                    // 读取 pnyn2idx（数组第0个元素）
+                    val pnyn2idxObj = jsonArray.getJSONObject(0)
+                    pnyn2idx.clear()
+                    val keys = pnyn2idxObj.keys()
+                    while (keys.hasNext()) {
+                        val key = keys.next()
+                        pnyn2idx[key] = pnyn2idxObj.getInt(key)
+                    }
+                    Timber.d("pnyn2idx loaded, size: %d", pnyn2idx.size)
+
+                    // 读取 idx2hanzi（数组第3个元素）
+                    val idx2hanziObj = jsonArray.getJSONObject(3)
+                    idx2hanzi.clear()
+                    val idxKeys = idx2hanziObj.keys()
+                    while (idxKeys.hasNext()) {
+                        val key = idxKeys.next()
+                        idx2hanzi[key.toInt()] = idx2hanziObj.getString(key)
+                    }
+                    Timber.d("idx2hanzi loaded, size: %d", idx2hanzi.size)
+                } else {
+                    Timber.e("vocab.json array length < 4")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to parse vocab.json")
+            }
+        } else {
+            Timber.e("vocab.json not found")
+        }
     }
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
@@ -104,7 +160,7 @@ class LiushuInputMethodService : LifecycleInputMethodService(), SavedStateRegist
                     _state.update {
                         val newInput = it.input.dropLast(1)
                         val newSegmentedTokens = getSegmentedInputTokens(newInput)
-                        val newCandidates = search(newInput)
+                        val newCandidates = smartSearch(newInput)
                         it.copy(
                             input = newInput,
                             segmentedTokens = newSegmentedTokens,
@@ -147,13 +203,14 @@ class LiushuInputMethodService : LifecycleInputMethodService(), SavedStateRegist
     private fun commitCandidate(candidate: Candidate) {
         commitText(candidate.text)
         _state.update {
-            val newSegmentTokens = it.segmentedTokens.drop(1)
+            val newSegmentTokens =
+                if (candidate.comment == "Torch") emptyList() else it.segmentedTokens.drop(1)
             if (newSegmentTokens.isEmpty()) {
                 it.copy(input = "", candidates = emptyList(), segmentedTokens = newSegmentTokens)
             } else {
                 it.copy(
                     input = newSegmentTokens.joinToString(""),
-                    candidates = search(newSegmentTokens[0]),
+                    candidates = smartSearch(newSegmentTokens[0]),
                     segmentedTokens = newSegmentTokens
                 )
             }
@@ -184,7 +241,7 @@ class LiushuInputMethodService : LifecycleInputMethodService(), SavedStateRegist
         _state.update {
             val newInput = it.input + code
             val newSegmentTokens = getSegmentedInputTokens(newInput)
-            val newCandidates = search(newSegmentTokens[0])
+            val newCandidates = smartSearch(newInput)
             it.copy(
                 input = newInput,
                 candidates = newCandidates,
@@ -199,6 +256,8 @@ class LiushuInputMethodService : LifecycleInputMethodService(), SavedStateRegist
     }
 
     override fun onDestroy() {
+        engine.close()
+        torchModule?.destroy()
         engine.close()
         super.onDestroy()
     }
@@ -233,5 +292,68 @@ class LiushuInputMethodService : LifecycleInputMethodService(), SavedStateRegist
 
     private fun getSegmentedInputTokens(input: String): List<String> {
         return engine.segment(input)
+    }
+
+    private fun smartSearch(input: String): List<Candidate> {
+        Timber.e("Fuck")
+        return if (input.length <= 8) {
+            engine.search(input)  // 原有逻辑
+        } else {
+            Timber.e("Fuck torch")
+            torchSearch(input)    // 模型推理
+        }
+    }
+
+    private fun torchSearch(pinyinStr: String): List<Candidate> {
+        val module = torchModule
+        if (module == null) {
+            Timber.e("torchSearch failed: module is null")
+            return emptyList()
+        }
+
+        Timber.e(pinyinStr)
+
+        // 1. 将拼音字符串转换为索引序列
+        val inputIds = pinyinStr.map { pnyn2idx[it.toString()] ?: 1 }.toMutableList()
+
+        // 2. 填充/截断到 maxlen = 50
+        val maxlen = 50
+        while (inputIds.size < maxlen) inputIds.add(0)
+        val inputArray = inputIds.take(maxlen).map { it.toLong() }.toLongArray()
+
+        // 3. 构建 Tensor (形状: 1, maxlen)
+        val inputTensor = Tensor.fromBlob(inputArray, longArrayOf(1, maxlen.toLong()))
+        val inputEValue = EValue.from(inputTensor)
+
+        // 4. 推理
+        val output = module.forward(inputEValue)
+        val outputData = output[0].toTensor().dataAsLongArray  // 形状 (1, maxlen)
+
+        // 5. 后处理：提取有效汉字
+        val validLen = pinyinStr.length.coerceAtMost(maxlen)
+        val chars = mutableListOf<String>()
+        for (i in 0 until validLen) {
+            val idx = outputData[i].toInt()
+            if (idx == 0) break           // 遇到 padding 提前结束（安全处理）
+            val char = idx2hanzi[idx] ?: ""
+            if (char != "_" && char.isNotEmpty()) {
+                chars.add(char)
+            }
+        }
+        val result = chars.joinToString("")
+
+        // 6. 包装为 Candidate 列表（按原有结构）
+        return if (result.isNotEmpty()) {
+            listOf(
+                Candidate(
+                    text = result,
+                    code = pinyinStr,
+                    weight = 100000000u,
+                    comment = "Torch"
+                )
+            ) // 假设 Candidate 有 text 和 code 属性
+        } else {
+            emptyList()
+        }
     }
 }
